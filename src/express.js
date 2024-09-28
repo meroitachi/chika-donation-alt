@@ -30,10 +30,10 @@ const fs = require("fs");
 
 const CONFIG_GIST_URL = "";
 const DEFAULT_CONFIG = {
-    environment: "local",
+    environment: "production",
     APP_NAME: "CHIKA DONATION PANEL",
     CDN_SRC:
-        "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-portal@main",
+        "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main",
     CDN_SRC2: "http://localhost:4000",
     APP_URL: "http://localhost:8787", // "http://127.0.0.1:8787",
     BOT_ID_NO: "1",

@@ -26,7 +26,7 @@ function delay(delay) {
         setTimeout(resolve, delay);
     });
 }
-const CDN_BASE = "http://localhost:4000"; //' https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-portal@main';
+const CDN_BASE ="https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main" //"http://localhost:4000"
 const APP_URL = "http://localhost:8787";
 const BOT_GC = "5473736752744010"; //bot group id
 const HTML_BASE = `${CDN_BASE}/pages`;

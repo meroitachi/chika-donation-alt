@@ -1,7 +1,7 @@
 const CACHE_NAME = "chika_web_app_v1";
 
+const url="https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main"//"http://localhost:4000"
 // URLs to be cached initially
-const url="http://localhost:4000"
 const URLsToCache = [
   `${url}/assets/imgs/icon-192x192.png`,
   `${url}/assets/imgs/icon-512x512.png`,
