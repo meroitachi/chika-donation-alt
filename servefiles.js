@@ -1,4 +1,4 @@
-//Cdn server for experiment
+//fake cdn server for experiment
 const express = require('express');
 const path = require('path');
 const fs = require('fs');

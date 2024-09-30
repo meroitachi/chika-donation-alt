@@ -1,5 +1,4 @@
-//Fake bot api for experiment
-//You can modify this to create your bot's API endpoints
+//Fake bot api endpoint example for experiment
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -15,8 +14,8 @@ async function sendEMail(tO, subject, content) {
 		port: 587,
 		secure: false,
 		auth: {
-			user: '7cd7de002@smtp-brevo.com', //Replace it with yours
-			pass: 'xsmtpsib-79c156bf99f84a83c96602d084410842da76d45764cdd7127bd8476795fcebd5-KBjJEtAQ9WwIG8Ds', //And this one too
+			user: '7cd7de02@smtp-brevo.com', //Replace it with yours
+			pass: 'xsmtpsib-79c156bf994a83c96602d084410842da76d45764cdd7127bd8476795fcebd5-KBjJEtAQ9WwIG8Ds', //And this one too
 		},
 	});
 

@@ -11,8 +11,8 @@
  * Project: CHIKA DONATION PORTAL
  * Description: A simple web panel to collect and manage donation for messenger bot projects.
  *
- * Author(express script): Mero (https://github.com/meroitachi)
- * Author(main)	: Tas33n (https://github.com/tas33n)
+ * Project Author: Tas33n (https://github.com/tas33n)
+ * Script Author(express): Mero (https://github.com/meroitachi)
  *
  * Copyright © 2024 MISFITSDEV. All rights reserved.
  *
@@ -25,15 +25,16 @@
 const express = require("express");
 const axios = require("axios");
 const bodyParser = require("body-parser");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const path = require("path");
 const fs = require("fs");
 
 const CONFIG_GIST_URL = "";
 const DEFAULT_CONFIG = {
-    environment: "production",
+    environment: "local",
     APP_NAME: "CHIKA DONATION PANEL",
-    CDN_SRC:
-        "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main",
+    CDN_SRC: "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main",
     CDN_SRC2: "http://localhost:4000",
     APP_URL: "http://localhost:8787", // "http://127.0.0.1:8787",
     BOT_ID_NO: "1",
@@ -54,11 +55,14 @@ async function fetchConfig(gistUrl) {
     }
 }
 async function initConfig() {
-    const gistConfig = await fetchConfig(CONFIG_GIST_URL);
+    const gistConfig = null; // await fetchConfig(CONFIG_GIST_URL);
     CONFIG = gistConfig || DEFAULT_CONFIG;
     console.log("Configuration initialized:", CONFIG);
 }
-
+let tokenStore = {};
+function generateToken() {
+    return crypto.randomBytes(20).toString("hex");
+}
 function serveHomePage(req, res) {
     const homeHtml = fs.readFileSync(
         path.join(__dirname, "index.html"),
@@ -125,6 +129,26 @@ async function handleApiRequest(req, res) {
         }
     }
 }
+async function sendEMail(data) {
+    const transporter = nodemailer.createTransport({
+        host: "smtp-relay.brevo.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: "7cdde003@smtp-brevo.com", //Replace it with yours
+            pass: "xsmtpsib-79c156bf9f84a83c96602d084410842da76d45764cdd7127bd8476795fcebd5-Q4Hhwn3t8NmbY7JT" //And this one too
+        }
+    });
+
+    const mailOptions = {
+        from: `"Chika's subscription" <meherab999plus@gmail.com>`, //your sender email and sender name
+        to: data.to,
+        subject: data.subject,
+        html: data.content
+    };
+    const inf = await transporter.sendMail(mailOptions);
+    return inf;
+}
 async function submitPaymentInfo(req, res) {
     const {
         email,
@@ -136,6 +160,8 @@ async function submitPaymentInfo(req, res) {
         amount,
         paymentMethod
     } = req.body;
+    const token = generateToken();
+    tokenStore[token] = { email, uid, tid };
     let mailConetnt = vpage(
         "other",
         email,
@@ -145,28 +171,35 @@ async function submitPaymentInfo(req, res) {
         senderNumber,
         paymentMethod,
         amount,
-        packageName
+        packageName,
+        null,
+        null,
+        token
     );
+
     const mailOptionss = {
         to: "meherabhosain7@gmail.com",
+        //admin email address
         subject: "Request from user:" + email,
         content: mailConetnt
     };
     try {
-        const apiResponse = await axios.post(
-            `${CONFIG.BOT_API}/sendmail`,
-            mailOptionss,
-            {
-                headers: {
-                    Authorization: `Bearer superad`,
-                    "Content-Type": "application/json"
-                }
-            }
-        );
-        if (apiResponse.data.status == "success") {
+        const ress = await sendEMail(mailOptionss);
+
+        // const apiResponse = await axios.post(
+        //             `${CONFIG.BOT_API}/sendmail`,
+        //             mailOptionss,
+        //             {
+        //                 headers: {
+        //                     Authorization: `Bearer superad`,
+        //                     "Content-Type": "application/json"
+        //                 }
+        //             }
+        //         );
+        // if(apiResponse.data.status=="success"){
+        if (ress) {
             res.status(200).json({
-                status: apiResponse.data.status,
-                html: mailConetnt,
+                status: "success",
                 info: {
                     email: email,
                     paymentMethod: paymentMethod,
@@ -202,7 +235,8 @@ function vpage(
     amount,
     packageName,
     message,
-    status
+    status,
+    token
 ) {
     const script1 = `
     <script>
@@ -233,9 +267,10 @@ senderNumber: "${senderNumber}",
 paymentMethod: "${paymentMethod}",
 amount: "${amount}",
 packageName:
-"${decodeURIComponent(packageName)}",
+"${packageName}",
 statuss: status,
-messagee: message
+messagee: message,
+token: "${token}"
 })
 }
 );
@@ -260,15 +295,16 @@ alert(
     let buttonmain;
     const button1 = `<a href="${
         CONFIG.APP_URL
-    }/vinfo?wru=superad&email=${email}&amount=${amount}&senderNumber=${senderNumber}&trxid=${trxid}&paymentMethod=${paymentMethod}&uid=${uid}&tid=${tid}&packageName=${encodeURIComponent(
-        packageName
-    )}" class="btn-link" id="btnn" > Process Request</a>`;
+    }/vinfo?token=${token}&email=${email}&packageName=${packageName.replace(
+        /'/g,
+        "%27"
+    )}&amount=${amount}&senderNumber=${senderNumber}&trxid=${trxid}&paymentMethod=${paymentMethod}&uid=${uid}&tid=${tid}" class="btn-link" id="btnn" > Process Request</a>`;
     const button2 = `<a href="${
         CONFIG.APP_URL +
         (["failed", "canceled"].includes(status) ? "#packages" : "#supporters")
     }" class="btn-link">${
         status === "success" ? "You are in VIP list now" : "Try again"
-    }  </a>`;
+    }</a>`;
 
     const button3 = `<button id="btnn" class="btn">Process Request
     </button>`;
@@ -277,7 +313,6 @@ alert(
         buttonmain = button3;
         mainscript = script1;
     } else if (type === "usern") {
-        buttonmain = button2;
     } else {
         buttonmain = button1;
     }
@@ -389,7 +424,9 @@ alert(
           <span class="key">"paymentMethod"</span>: <span class="value">${paymentMethod}</span>,
           <span class="key">"tid"</span>: <span class="value">${tid}</span>,
           <span class="key">"trxid"</span>: <span class="value">${trxid}</span>,
-          <span class="key">"packageName"</span>: <span class="value">${packageName}</span>,
+          <span class="key">"packageName"</span>: <span class="value">${decodeURIComponent(
+              packageName
+          )}</span>,
           <span class="key">"senderNumber"</span>: <span class="value">${senderNumber}</span>,
           <span class="key">"amount"</span>: <span class="value">${amount}</span>
           <span class="key">}</span>
@@ -414,7 +451,8 @@ async function verifyPaymentInfo(req, res) {
         amount,
         packageName,
         statuss,
-        messagee
+        messagee,
+        token
     } = req.body;
     if (
         !email ||
@@ -425,7 +463,8 @@ async function verifyPaymentInfo(req, res) {
         !paymentMethod ||
         !amount ||
         !packageName ||
-        !statuss
+        !statuss ||
+        !token
     ) {
         res.json({ status: "canceled", message: "all info required" });
     } else {
@@ -449,18 +488,25 @@ async function verifyPaymentInfo(req, res) {
                 );
 
                 if (apiResponse.data.status === "success") {
-                    ustatus = "success";
+                    console.log(
+                        token,
+                        "check token verifypinfo",
+                        tokenStore[token]
+                    );
+                    delete tokenStore[token];
                     res.json({
                         status: "success",
                         message: "The request was successful"
                     });
                 } else {
+                    delete tokenStore[token];
                     res.json({
                         status: "failed",
                         message: "The request failed"
                     });
                 }
             } catch (error) {
+                delete tokenStore[token];
                 console.error("Error while trying to send request:", error);
                 res.json({
                     status: "failed",
@@ -468,6 +514,7 @@ async function verifyPaymentInfo(req, res) {
                 });
             }
         } else {
+            delete tokenStore[token];
             res.json({ status: statuss, message: "Request canceled" });
         }
 
@@ -485,20 +532,22 @@ async function verifyPaymentInfo(req, res) {
             statuss
         );
         const mailoptionss = {
-            to: email,
-            subject: "Chika Subscription status",
+            to: email, //client mail
+            subject: "Chika's subscription status",
             content: mailconetnt
         };
-        const sendm = await axios.post(
-            `${CONFIG.BOT_API}/sendmail`,
-            mailoptionss,
-            {
-                headers: {
-                    Authorization: `Bearer superad`,
-                    "Content-Type": "application/json"
-                }
-            }
-        );
+        const ress = await sendEMail(mailoptionss);
+
+        // const sendm = await axios.post(
+        //             `${CONFIG.BOT_API}/sendmail`,
+        //             mailoptionss,
+        //             {
+        //                 headers: {
+        //                     Authorization: `Bearer superad`,
+        //                     "Content-Type": "application/json"
+        //                 }
+        //             }
+        //         );
     }
 }
 
@@ -547,7 +596,6 @@ async function startServer() {
     app.get("/assets/*", serveAssets);
 
     app.get("/api/:api/:id", handleApiRequest);
-
     app.get("/vinfo", (req, res) => {
         const {
             email,
@@ -558,9 +606,8 @@ async function startServer() {
             paymentMethod,
             amount,
             packageName,
-            wru
+            token
         } = req.query;
-
         if (
             !email ||
             !uid ||
@@ -571,29 +618,27 @@ async function startServer() {
             !amount ||
             !packageName
         ) {
-            res.status(400).json({ message: "All info required" });
-            return;
-        } else if (!wru || wru !== "superad") {
-            res.status(400).json({ message: "Forbidden" });
-        } else {
-            try {
-                const htcontent = vpage(
-                    "forverify",
-                    email,
-                    uid,
-                    tid,
-                    trxid,
-                    senderNumber,
-                    paymentMethod,
-                    amount,
-                    packageName
-                );
-                res.send(htcontent);
-            } catch (err) {
-                res.status(404).json("content not found");
-                console.log(err);
-            }
+            return res.status(400).json({ message: "All info required" });
         }
+
+        if (!tokenStore[token] || !token) {
+            return res.status(404).json({ message: "Not Found" });
+        }
+        const htcontent = vpage(
+            "forverify",
+            email,
+            uid,
+            tid,
+            trxid,
+            senderNumber,
+            paymentMethod,
+            amount,
+            packageName,
+            null,
+            null,
+            token
+        );
+        res.send(htcontent);
     });
     app.post("/submit/payment-info", submitPaymentInfo);
     app.post("/verify/payment-info", checkAuth, verifyPaymentInfo);

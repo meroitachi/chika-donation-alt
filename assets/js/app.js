@@ -26,7 +26,9 @@ function delay(delay) {
         setTimeout(resolve, delay);
     });
 }
-const CDN_BASE ="https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main" //"http://localhost:4000"
+const CDN_BASE = "http://localhost:4000";
+// "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main";
+const recipientNumber="01601244123"
 const APP_URL = "http://localhost:8787";
 const BOT_GC = "5473736752744010"; //bot group id
 const HTML_BASE = `${CDN_BASE}/pages`;
@@ -837,7 +839,10 @@ const renderUserThreadInfo = (userData, threadData) => {
             </div>
         </div>
     </div>
-
+<div class="alert alert-info text-center" role="alert">
+            Please send the payment to this number: <strong>${recipientNumber}</strong>.<br>
+            Make sure to double-check the number before sending. Once you've sent the payment, enter the transaction details below to confirm.
+        </div>
     <form id="confirmProceed">
         <div class="mb-3">
             <label for="paymentMethod" class="form-label">Payment Method</label>
@@ -1074,8 +1079,9 @@ const handleProceedDonation = () => {
             email: $("#email").val(),
             packageName: pkg
         },
-        success: function (response) {
+        success: async function (response) {
             if (response.status && response.status == "success") {
+                await delay(3000);
                 handlePaymentResponse(response);
                 console.info("hh ", response.status, "hhh ", response.info);
             } else {
@@ -1101,7 +1107,6 @@ const handleProceedDonation = () => {
     });
 };
 const handlePaymentResponse = async paymentStatuss => {
-    await delay(3000);
     hideLoading();
     if (paymentStatuss.status === "success") {
         const userData = getFromLocalStorage("userData");
