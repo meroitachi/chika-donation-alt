@@ -26,9 +26,9 @@ function delay(delay) {
         setTimeout(resolve, delay);
     });
 }
-const CDN_BASE = "http://localhost:4000";
-// "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main";
-const recipientNumber="01601244123"
+const CDN_BASE = "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main"; 
+//"http://localhost:4000";
+const recipientNumber = "01601244123";
 const APP_URL = "http://localhost:8787";
 const BOT_GC = "5473736752744010"; //bot group id
 const HTML_BASE = `${CDN_BASE}/pages`;
@@ -1063,9 +1063,10 @@ const renderInvitePage = async () => {
     }
 };
 
-const handleProceedDonation = () => {
+const handleProceedDonation = async () => {
     let pkg = selectedPackage.name;
     showLoading("Please wait..");
+                await delay(3000);
     $.ajax({
         url: "/submit/payment-info",
         method: "POST",
@@ -1079,9 +1080,8 @@ const handleProceedDonation = () => {
             email: $("#email").val(),
             packageName: pkg
         },
-        success: async function (response) {
+        success: function (response) {
             if (response.status && response.status == "success") {
-                await delay(3000);
                 handlePaymentResponse(response);
                 console.info("hh ", response.status, "hhh ", response.info);
             } else {

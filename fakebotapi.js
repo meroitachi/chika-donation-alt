@@ -14,8 +14,8 @@ async function sendEMail(tO, subject, content) {
 		port: 587,
 		secure: false,
 		auth: {
-			user: '7cd7de02@smtp-brevo.com', //Replace it with yours
-			pass: 'xsmtpsib-79c156bf994a83c96602d084410842da76d45764cdd7127bd8476795fcebd5-KBjJEtAQ9WwIG8Ds', //And this one too
+			user: process.env.SMTPUSER, //Replace it with yours
+			pass: process.env.SMTPKEY, //And this one too
 		},
 	});
 

@@ -25,6 +25,7 @@
 const express = require("express");
 const axios = require("axios");
 const bodyParser = require("body-parser");
+require("dotenv").config();
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const path = require("path");
@@ -32,7 +33,7 @@ const fs = require("fs");
 
 const CONFIG_GIST_URL = "";
 const DEFAULT_CONFIG = {
-    environment: "local",
+    environment: "production",
     APP_NAME: "CHIKA DONATION PANEL",
     CDN_SRC: "https://cdn.jsdelivr.net/gh/meroitachi/chika-donation-alt@main",
     CDN_SRC2: "http://localhost:4000",
@@ -135,8 +136,8 @@ async function sendEMail(data) {
         port: 587,
         secure: false,
         auth: {
-            user: "7cdde003@smtp-brevo.com", //Replace it with yours
-            pass: "xsmtpsib-79c156bf9f84a83c96602d084410842da76d45764cdd7127bd8476795fcebd5-Q4Hhwn3t8NmbY7JT" //And this one too
+            user: process.env.SMTPUSER, //Replace it with yours
+            pass: process.env.SMTPKEY //And this one too
         }
     });
 
@@ -313,6 +314,7 @@ alert(
         buttonmain = button3;
         mainscript = script1;
     } else if (type === "usern") {
+        buttonmain = button2;
     } else {
         buttonmain = button1;
     }
