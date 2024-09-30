@@ -67,8 +67,11 @@ npm install
 **Note:** If you want to use your bot project's email sending SMTP function to send emails through your bot API, you can change the option
 
 - Create an account on [brevo.com](brevo.com), go to `Senders, Domains & Dedicated IPS` option and add a sender email, (such as 'your email@.gmail.com')
-- Go to the `SMTP & API` option, create a new SMTP key, and copy the login and password (SMTP key). Then, add it to the SMTP configuration in the `.env` file.
-
+- Go to the `SMTP & API` option, create a new SMTP key, and copy the login and password (SMTP key). Then, create a `.env`file and add your user and SMTP key in the `.env` file:
+```.env
+SMTPUSER=<your_user>
+SMTPKEY=<your_smtp_key>)
+```
 6. Start the server:
 
 - You can start the server by running
